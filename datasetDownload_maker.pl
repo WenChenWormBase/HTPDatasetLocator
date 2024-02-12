@@ -36,6 +36,8 @@ while ($line = <IN>) {
     $wbID = $stuff[0];
     ($datasetName, $stuff[0]) = split ".paper", $tmp[2];
     $datasetName = join '.', $datasetName, "csv";
+    #($datasetID, $stuff[0]) = split ".paper", $tmp[2];
+    #$datasetName = join '.', $datasetID, "csv";
     $url = "ftp:\/\/caltech.wormbase.org\/pub\/wormbase\/spell_download\/datasets\/$datasetName";
 
     @stuff = ();
@@ -92,8 +94,44 @@ while ($line = <IN>) {
     #print OUT "$datasetID\t$datasetName\t$wbID\t$exprType\t$spe\t$tissue\t$topicList\t$title\t$url\n";
     print OUT "$datasetID\t$datasetName\t$pubmedID\t$exprType\t$spe\t$tissue\t$topicList\t$title\n";
 }
-
 close (IN);
+
+
+open (SCR, "/home/wen/LargeDataSets/Topic/scRNASeqDatasets.csv") || die "can't open scRNASeqDatasets.csv!"; 
+my ($gpl, $gds, $hypGPL, $hypGDS, $labAtlas, $otherlinks);
+$line = <SCR>;
+while ($line = <SCR>) {
+    chomp ($line);
+    ($datasetID, $datasetName, $pubmedID, $exprType, $spe, $tissue, $topicList, $title, $gpl, $gds, $labAtlas, $otherlinks) = split /\t/, $line;
+    #add color to title for scRNASeq
+    $title = "\<font color \= \"green\">$title\<\/font\>";
+    #hyperlink GPL
+    if ($gpl eq "N.A.") {
+	$hypGPL = "N.A.";
+    } else {
+	$hypGPL = "\<a href\=\"http\:\/\/www.ncbi.nlm.nih.gov\/geo\/query\/acc.cgi\?acc\=$gpl\" target=\"_blank\"\>$gpl\<\/a\>";
+    }
+    
+    #hyperlink GSE 
+    if ($gds eq "N.A.") {
+	$hypGDS = "N.A.";
+    } else {
+	$hypGDS = "\<a href\=\"http\:\/\/www.ncbi.nlm.nih.gov\/geo\/query\/acc.cgi\?acc\=$gds\" target=\"_blank\"\>$gds\<\/a\>";
+    }
+    #build new title
+    $title = "$title \<br\> GEO Record: $hypGPL, Platform: $hypGDS";
+
+    if ($labAtlas ne "") {
+	$labAtlas = "\<a href\=\"$labAtlas\"\>$labAtlas\<\/a\>";
+	$title = "$title \<br\> Lab Atlas: $labAtlas";
+    }
+
+    if ($otherlinks ne "") {
+	$otherlinks = "\<a href\=\"$otherlinks\"\>$otherlinks\<\/a\>";
+	$title = "$title \<br\> Other resources: $otherlinks";
+    }
+    
+    print OUT "$datasetID\t$datasetName\t$pubmedID\t$exprType\t$spe\t$tissue\t$topicList\t$title\n";    
+}
+close (SCR);
 close (OUT);
-
-
